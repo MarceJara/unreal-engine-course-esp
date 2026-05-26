@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creación de Mundos Digitales con UE5</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c12;
+  --bg2: #0f1117;
+  --bg3: #161920;
+  --bg4: #1d2030;
+  --teal: #00d4aa;
+  --teal-dim: #00d4aa22;
+  --teal-mid: #00d4aa55;
+  --amber: #f5a623;
+  --amber-dim: #f5a62322;
+  --purple: #9b7fe8;
+  --purple-dim: #9b7fe822;
+  --coral: #ff6b6b;
+  --coral-dim: #ff6b6b22;
+  --text: #e8eaf0;
+  --text2: #8b8fa8;
+  --text3: #4a4e66;
+  --border: #1e2235;
+  --border2: #252840;
+  --mono: 'Space Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── SCAN LINE TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10,12,18,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.5rem;
+  height: 58px;
+}
+
+.nav-logo {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--teal);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text2);
+  text-decoration: none;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--teal); }
+
+.nav-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 12px;
+  border: 1px solid var(--teal-mid);
+  border-radius: 2px;
+  color: var(--teal);
+  letter-spacing: .08em;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  padding: 7rem 2.5rem 5rem;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,170,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,170,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black, transparent);
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--teal);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-eyebrow::before {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 1px;
+  background: var(--teal);
+}
+
+h1 {
+  font-family: var(--display);
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -.02em;
+  margin-bottom: 1.5rem;
+  max-width: 700px;
+}
+
+h1 .accent { color: var(--teal); }
+
+.hero-sub {
+  font-size: 17px;
+  color: var(--text2);
+  max-width: 520px;
+  margin-bottom: 3rem;
+  line-height: 1.7;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-num {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--teal);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.hero-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--teal-mid), transparent);
+  margin-top: 5rem;
+}
+
+/* ── SECTION ── */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 5rem 2.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--teal);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  margin-bottom: .75rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border2);
+  max-width: 60px;
+}
+
+h2 {
+  font-family: var(--display);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  margin-bottom: 2.5rem;
+  line-height: 1.2;
+}
+
+/* ── SOBRE EL TALLER ── */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 3rem;
+}
+
+.about-cell {
+  background: var(--bg2);
+  padding: 2rem;
+}
+
+.about-cell-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: .5rem;
+}
+
+.about-cell-value {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.about-cell-value strong { color: var(--teal); font-weight: 500; }
+
+.profiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.profile-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 1.25rem;
+  transition: border-color .2s, background .2s;
+}
+.profile-card:hover {
+  border-color: var(--teal-mid);
+  background: var(--bg3);
+}
+
+.profile-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.profile-name {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.profile-desc {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* ── MÓDULOS ── */
+.modules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.module-item {
+  background: var(--bg2);
+  padding: 0;
+  cursor: pointer;
+  transition: background .15s;
+}
+.module-item:hover { background: var(--bg3); }
+.module-item.open { background: var(--bg3); }
+
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+  user-select: none;
+}
+
+.module-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: .1em;
+  min-width: 28px;
+}
+
+.module-accent {
+  width: 3px;
+  height: 36px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.module-info { flex: 1; }
+
+.module-title {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.module-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .08em;
+}
+
+.module-chevron {
+  font-size: 18px;
+  color: var(--text3);
+  transition: transform .25s;
+  line-height: 1;
+}
+.module-item.open .module-chevron { transform: rotate(90deg); color: var(--teal); }
+
+.module-body {
+  display: none;
+  padding: 0 2rem 2rem 5.5rem;
+}
+.module-item.open .module-body { display: block; }
+
+.module-desc {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.75;
+  margin-bottom: 1.5rem;
+  border-left: 2px solid var(--border2);
+  padding-left: 1rem;
+}
+
+.sessions-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.session-mini {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg4);
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  transition: border-color .2s;
+}
+.session-mini:hover { border-color: var(--border2); }
+
+.session-mini-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  min-width: 22px;
+  padding-top: 1px;
+}
+
+.session-mini-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.session-mini-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  letter-spacing: .06em;
+}
+
+/* ── SESIONES ── */
+.sessions-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.week-block { margin-bottom: 2.5rem; }
+
+.week-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.week-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.session-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.session-card:hover { border-color: var(--border2); }
+.session-card.open { border-color: var(--teal-mid); }
+
+.session-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.session-num {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text3);
+  min-width: 32px;
+  line-height: 1;
+}
+.session-card.open .session-num { color: var(--teal); }
+
+.session-card-info { flex: 1; }
+
+.session-card-title {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.session-card-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .06em;
+}
+
+.session-card-chevron {
+  font-size: 14px;
+  color: var(--text3);
+  transition: transform .2s;
+}
+.session-card.open .session-card-chevron { transform: rotate(90deg); color: var(--teal); }
+
+.session-card-body {
+  display: none;
+  padding: 0 1.25rem 1.25rem;
+}
+.session-card.open .session-card-body { display: block; }
+
+.abp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.abp-block {
+  padding: 12px 14px;
+  border-radius: 3px;
+}
+
+.abp-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.abp-text {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.topics-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.topic-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  color: var(--text2);
+  letter-spacing: .04em;
+}
+
+.entrega-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 5px 12px;
+  border: 1px solid var(--teal-mid);
+  border-radius: 2px;
+  color: var(--teal);
+  background: var(--teal-dim);
+  letter-spacing: .06em;
+}
+
+/* ── RECURSOS ── */
+.recursos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.recurso-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 1.5rem;
+  transition: border-color .2s, background .2s;
+  text-decoration: none;
+}
+.recurso-card:hover {
+  border-color: var(--teal-mid);
+  background: var(--bg3);
+}
+
+.recurso-icon {
+  font-size: 24px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.recurso-title {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.recurso-desc {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+.recurso-link {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--teal);
+  margin-top: 10px;
+  display: block;
+  letter-spacing: .06em;
+}
+
+/* ── DOCENTE ── */
+.docente-card {
+  display: flex;
+  gap: 2rem;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 2rem;
+  align-items: flex-start;
+}
+
+.docente-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 3px;
+  background: var(--teal-dim);
+  border: 1px solid var(--teal-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--teal);
+  flex-shrink: 0;
+}
+
+.docente-name {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.docente-role {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--teal);
+  letter-spacing: .1em;
+  margin-bottom: 1rem;
+}
+
+.docente-bio {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+
+.docente-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+/* ── CERTIFICACIÓN ── */
+.cert-box {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 2rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.cert-icon-box {
+  width: 56px;
+  height: 56px;
+  background: var(--amber-dim);
+  border: 1px solid var(--amber);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  color: var(--amber);
+}
+
+.cert-title {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.cert-desc {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+
+.cert-req {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,166,35,0.3);
+  padding: 6px 14px;
+  border-radius: 2px;
+  letter-spacing: .06em;
+}
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 1;
+  padding: 2rem 2.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-logo {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .12em;
+}
+
+.footer-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: .08em;
+}
+
+/* ── ANIMACIONES ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-eyebrow { animation: fadeUp .5s ease both; }
+h1 { animation: fadeUp .5s .1s ease both; }
+.hero-sub { animation: fadeUp .5s .2s ease both; }
+.hero-stats { animation: fadeUp .5s .3s ease both; }
+
+@media (max-width: 700px) {
+  .about-grid { grid-template-columns: 1fr; }
+  .abp-grid { grid-template-columns: 1fr; }
+  .docente-card { flex-direction: column; }
+  nav { padding: 0 1.2rem; }
+  section { padding: 3rem 1.2rem; }
+  h1 { font-size: 2.2rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">// UE5 · PUCP</div>
+  <ul class="nav-links">
+    <li><a href="#sobre">Sobre</a></li>
+    <li><a href="#modulos">Módulos</a></li>
+    <li><a href="#sesiones">Sesiones</a></li>
+    <li><a href="#recursos">Recursos</a></li>
+    <li><a href="#docente">Docente</a></li>
+  </ul>
+  <div class="nav-badge">24h · 6 SEM</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="inicio">
+  <div class="hero-grid"></div>
+  <div class="hero-eyebrow">Taller PUCP · 2025</div>
+  <h1>Creación de<br><span class="accent">Mundos Digitales</span><br>con Unreal Engine</h1>
+  <p class="hero-sub">Construye entornos interactivos en tiempo real desde cero. Juegos, visualización arquitectónica, producción virtual — el mismo motor, infinitas aplicaciones.</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">24h</span><span class="stat-label">Duración total</span></div>
+    <div class="stat"><span class="stat-num">12</span><span class="stat-label">Sesiones</span></div>
+    <div class="stat"><span class="stat-num">4</span><span class="stat-label">Módulos</span></div>
+    <div class="stat"><span class="stat-num">3</span><span class="stat-label">Entregas</span></div>
+  </div>
+  <div class="hero-divider"></div>
+</section>
+
+<!-- SOBRE -->
+<section id="sobre">
+  <div class="section-label">Sobre el taller</div>
+  <h2>¿Qué vas a aprender?</h2>
+
+  <div class="about-grid">
+    <div class="about-cell">
+      <div class="about-cell-label">Modalidad</div>
+      <div class="about-cell-value"><strong>Presencial</strong> · PUCP</div>
+    </div>
+    <div class="about-cell">
+      <div class="about-cell-label">Frecuencia</div>
+      <div class="about-cell-value"><strong>2 sesiones</strong> por semana · 2h c/u</div>
+    </div>
+    <div class="about-cell">
+      <div class="about-cell-label">Requisitos</div>
+      <div class="about-cell-value">Ninguno. <strong>Sin experiencia previa</strong> en programación ni 3D.</div>
+    </div>
+    <div class="about-cell">
+      <div class="about-cell-label">Certificación</div>
+      <div class="about-cell-value"><strong>Constancia de participación</strong> · 80% asistencia</div>
+    </div>
+    <div class="about-cell" style="grid-column: 1 / -1;">
+      <div class="about-cell-label">Metodología</div>
+      <div class="about-cell-value">Aprendizaje basado en proyectos (ABP). Desde la sesión 1 cada estudiante construye su propio mundo digital — un entorno que crece con cada sesión y culmina en una demo final.</div>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-bottom:1rem">¿Para quién es?</div>
+  <div class="profiles">
+    <div class="profile-card">
+      <div class="profile-icon" style="background:#00d4aa1a; color:var(--teal)">⬡</div>
+      <div class="profile-name">Ingeniería</div>
+      <div class="profile-desc">Game development, simulaciones interactivas, sistemas VR/XR</div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-icon" style="background:#9b7fe81a; color:var(--purple)">◫</div>
+      <div class="profile-name">Arquitectura</div>
+      <div class="profile-desc">Visualización arquitectónica en tiempo real (ArchViz), recorridos inmersivos</div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-icon" style="background:#f5a6231a; color:var(--amber)">▶</div>
+      <div class="profile-name">Producción</div>
+      <div class="profile-desc">Sets virtuales, producción audiovisual, animación 3D, VFX</div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-icon" style="background:#ff6b6b1a; color:var(--coral)">◈</div>
+      <div class="profile-name">Arte y diseño</div>
+      <div class="profile-desc">Entornos, shaders, materiales y experiencias visuales interactivas</div>
+    </div>
+  </div>
+</section>
+
+<!-- MÓDULOS -->
+<section id="modulos">
+  <div class="section-label">Contenido</div>
+  <h2>Módulos del taller</h2>
+
+  <div class="modules-list">
+
+    <div class="module-item open" onclick="toggleModule(this)">
+      <div class="module-header">
+        <span class="module-num">M1</span>
+        <div class="module-accent" style="background:var(--teal)"></div>
+        <div class="module-info">
+          <div class="module-title">Introducción y construcción del mundo</div>
+          <div class="module-meta">Sesiones 1 – 3 &nbsp;·&nbsp; 6 horas</div>
+        </div>
+        <span class="module-chevron">›</span>
+      </div>
+      <div class="module-body">
+        <p class="module-desc">Instalación de UE5, exploración de interfaz y gestión de activos. Cada estudiante define la temática de su proyecto desde la primera sesión. Luego construyen el terreno base con Landscape Tool, lo pueblan con vegetación procedural, importan activos de Quixel Megascans y crean un primer elemento propio con Modeling Mode.</p>
+        <div class="sessions-mini">
+          <div class="session-mini">
+            <span class="session-mini-num">01</span>
+            <div>
+              <div class="session-mini-title">Bienvenida, UE5 e inicio del proyecto</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#00d4aa15;color:var(--teal);border:1px solid var(--teal-mid)">Interfaz</span>
+                <span class="tag" style="background:#00d4aa15;color:var(--teal);border:1px solid var(--teal-mid)">Content Browser</span>
+                <span class="tag" style="background:#00d4aa15;color:var(--teal);border:1px solid var(--teal-mid)">Brief de proyecto</span>
+              </div>
+            </div>
+          </div>
+          <div class="session-mini">
+            <span class="session-mini-num">02</span>
+            <div>
+              <div class="session-mini-title">Terrain: primer entorno del proyecto</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#00d4aa15;color:var(--teal);border:1px solid var(--teal-mid)">Landscape Tool</span>
+                <span class="tag" style="background:#00d4aa15;color:var(--teal);border:1px solid var(--teal-mid)">Foliage</span>
+                <span class="tag" style="background:#00d4aa15;color:var(--teal);border:1px solid var(--teal-mid)">Heightmaps</span>
+              </div>
+            </div>
+          </div>
+          <div class="session-mini">
+            <span class="session-mini-num">03</span>
+            <div>
+              <div class="session-mini-title">Activos, población de escena y modelado básico</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#00d4aa15;color:var(--teal);border:1px solid var(--teal-mid)">Megascans</span>
+                <span class="tag" style="background:#00d4aa15;color:var(--teal);border:1px solid var(--teal-mid)">Static Mesh</span>
+                <span class="tag" style="background:#00d4aa15;color:var(--teal);border:1px solid var(--teal-mid)">Modeling Mode</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="module-item" onclick="toggleModule(this)">
+      <div class="module-header">
+        <span class="module-num">M2</span>
+        <div class="module-accent" style="background:var(--purple)"></div>
+        <div class="module-info">
+          <div class="module-title">Entorno visual</div>
+          <div class="module-meta">Sesiones 4 – 6 &nbsp;·&nbsp; 6 horas</div>
+        </div>
+        <span class="module-chevron">›</span>
+      </div>
+      <div class="module-body">
+        <p class="module-desc">Iluminación en tiempo real con Lumen, configuración de Sky Atmosphere y Postprocess Volume para definir la atmósfera visual del proyecto. Creación de materiales personalizados con el editor de nodos. Cierra con animaciones básicas con Animation Blueprint y físicas con Chaos Physics.</p>
+        <div class="sessions-mini">
+          <div class="session-mini">
+            <span class="session-mini-num">04</span>
+            <div>
+              <div class="session-mini-title">Iluminación con Lumen</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#9b7fe815;color:var(--purple);border:1px solid #9b7fe855">Lumen GI</span>
+                <span class="tag" style="background:#9b7fe815;color:var(--purple);border:1px solid #9b7fe855">Sky Atmosphere</span>
+                <span class="tag" style="background:#9b7fe815;color:var(--purple);border:1px solid #9b7fe855">Postprocess</span>
+              </div>
+            </div>
+          </div>
+          <div class="session-mini">
+            <span class="session-mini-num">05</span>
+            <div>
+              <div class="session-mini-title">Materiales y shaders</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#9b7fe815;color:var(--purple);border:1px solid #9b7fe855">Editor de materiales</span>
+                <span class="tag" style="background:#9b7fe815;color:var(--purple);border:1px solid #9b7fe855">PBR</span>
+                <span class="tag" style="background:#9b7fe815;color:var(--purple);border:1px solid #9b7fe855">Material Instances</span>
+              </div>
+            </div>
+          </div>
+          <div class="session-mini">
+            <span class="session-mini-num">06</span>
+            <div>
+              <div class="session-mini-title">Animaciones y físicas</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#9b7fe815;color:var(--purple);border:1px solid #9b7fe855">Animation BP</span>
+                <span class="tag" style="background:#9b7fe815;color:var(--purple);border:1px solid #9b7fe855">Chaos Physics</span>
+                <span class="tag" style="background:#9b7fe815;color:var(--purple);border:1px solid #9b7fe855">Blend Spaces</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="module-item" onclick="toggleModule(this)">
+      <div class="module-header">
+        <span class="module-num">M3</span>
+        <div class="module-accent" style="background:var(--amber)"></div>
+        <div class="module-info">
+          <div class="module-title">Interactividad</div>
+          <div class="module-meta">Sesiones 7 – 9 &nbsp;·&nbsp; 6 horas</div>
+        </div>
+        <span class="module-chevron">›</span>
+      </div>
+      <div class="module-body">
+        <p class="module-desc">Blueprints para crear interacciones con el usuario mediante triggers y colisiones. Comunicación entre objetos con Cast To, Event Dispatchers y Blueprint Interfaces para sistemas escalables. Cierra con diseño de sonido espacial y optimización de rendimiento con Stats de UE5.</p>
+        <div class="sessions-mini">
+          <div class="session-mini">
+            <span class="session-mini-num">07</span>
+            <div>
+              <div class="session-mini-title">Blueprints: interactividad básica</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#f5a62315;color:var(--amber);border:1px solid #f5a62355">Variables</span>
+                <span class="tag" style="background:#f5a62315;color:var(--amber);border:1px solid #f5a62355">Triggers</span>
+                <span class="tag" style="background:#f5a62315;color:var(--amber);border:1px solid #f5a62355">Input</span>
+              </div>
+            </div>
+          </div>
+          <div class="session-mini">
+            <span class="session-mini-num">08</span>
+            <div>
+              <div class="session-mini-title">Comunicación entre objetos: Cast y Event Dispatchers</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#f5a62315;color:var(--amber);border:1px solid #f5a62355">Cast To</span>
+                <span class="tag" style="background:#f5a62315;color:var(--amber);border:1px solid #f5a62355">Event Dispatchers</span>
+                <span class="tag" style="background:#f5a62315;color:var(--amber);border:1px solid #f5a62355">BP Interfaces</span>
+              </div>
+            </div>
+          </div>
+          <div class="session-mini">
+            <span class="session-mini-num">09</span>
+            <div>
+              <div class="session-mini-title">Sonido y optimización</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#f5a62315;color:var(--amber);border:1px solid #f5a62355">Sound Cues</span>
+                <span class="tag" style="background:#f5a62315;color:var(--amber);border:1px solid #f5a62355">Audio 3D</span>
+                <span class="tag" style="background:#f5a62315;color:var(--amber);border:1px solid #f5a62355">LODs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="module-item" onclick="toggleModule(this)">
+      <div class="module-header">
+        <span class="module-num">M4</span>
+        <div class="module-accent" style="background:var(--coral)"></div>
+        <div class="module-info">
+          <div class="module-title">Proyecto integrador y cierre</div>
+          <div class="module-meta">Sesiones 10 – 12 &nbsp;·&nbsp; 6 horas</div>
+        </div>
+        <span class="module-chevron">›</span>
+      </div>
+      <div class="module-body">
+        <p class="module-desc">Demo de avance con feedback estructurado del docente y plan de ajustes. Empaquetado del proyecto como ejecutable independiente, capturas para portfolio con High Resolution Screenshot. Demo final en vivo ante el grupo con reflexión sobre la aplicación profesional del proyecto.</p>
+        <div class="sessions-mini">
+          <div class="session-mini">
+            <span class="session-mini-num">10</span>
+            <div>
+              <div class="session-mini-title">Revisión y retroalimentación</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#ff6b6b15;color:var(--coral);border:1px solid #ff6b6b55">Demo de avance</span>
+                <span class="tag" style="background:#ff6b6b15;color:var(--coral);border:1px solid #ff6b6b55">Feedback</span>
+              </div>
+            </div>
+          </div>
+          <div class="session-mini">
+            <span class="session-mini-num">11</span>
+            <div>
+              <div class="session-mini-title">Cierre técnico y empaquetado</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#ff6b6b15;color:var(--coral);border:1px solid #ff6b6b55">Packaging</span>
+                <span class="tag" style="background:#ff6b6b15;color:var(--coral);border:1px solid #ff6b6b55">Portfolio</span>
+              </div>
+            </div>
+          </div>
+          <div class="session-mini">
+            <span class="session-mini-num">12</span>
+            <div>
+              <div class="session-mini-title">Demo final y cierre</div>
+              <div class="session-mini-tags">
+                <span class="tag" style="background:#ff6b6b15;color:var(--coral);border:1px solid #ff6b6b55">Presentación</span>
+                <span class="tag" style="background:#ff6b6b15;color:var(--coral);border:1px solid #ff6b6b55">Demo en vivo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- SESIONES -->
+<section id="sesiones">
+  <div class="section-label">Cronograma</div>
+  <h2>Sesiones semana a semana</h2>
+
+  <div class="sessions-timeline" id="sessions-timeline"></div>
+</section>
+
+<!-- RECURSOS -->
+<section id="recursos">
+  <div class="section-label">Material de apoyo</div>
+  <h2>Recursos del taller</h2>
+  <div class="recursos-grid">
+    <a class="recurso-card" href="https://docs.unrealengine.com" target="_blank">
+      <span class="recurso-icon" style="color:var(--teal)">⬡</span>
+      <div class="recurso-title">Documentación oficial UE5</div>
+      <div class="recurso-desc">Referencia completa de todas las herramientas, sistemas y APIs de Unreal Engine 5.</div>
+      <span class="recurso-link">docs.unrealengine.com →</span>
+    </a>
+    <a class="recurso-card" href="https://dev.epicgames.com/community/learning" target="_blank">
+      <span class="recurso-icon" style="color:var(--purple)">▶</span>
+      <div class="recurso-title">Unreal Online Learning</div>
+      <div class="recurso-desc">Cursos y tutoriales oficiales de Epic Games, gratuitos y en español.</div>
+      <span class="recurso-link">dev.epicgames.com →</span>
+    </a>
+    <a class="recurso-card" href="https://quixel.com/megascans" target="_blank">
+      <span class="recurso-icon" style="color:var(--amber)">◈</span>
+      <div class="recurso-title">Quixel Megascans</div>
+      <div class="recurso-desc">Biblioteca de activos 3D fotorrealistas gratuita para usuarios de UE5.</div>
+      <span class="recurso-link">quixel.com →</span>
+    </a>
+    <a class="recurso-card" href="https://www.fab.com" target="_blank">
+      <span class="recurso-icon" style="color:var(--coral)">◧</span>
+      <div class="recurso-title">Fab Marketplace</div>
+      <div class="recurso-desc">Assets, plugins y contenido gratuito y de pago para proyectos en UE5.</div>
+      <span class="recurso-link">fab.com →</span>
+    </a>
+    <a class="recurso-card" href="https://www.youtube.com/@UnrealEngine" target="_blank">
+      <span class="recurso-icon" style="color:var(--teal)">▷</span>
+      <div class="recurso-title">Canal oficial YouTube</div>
+      <div class="recurso-desc">Tutoriales, livestreams y demostraciones técnicas de Epic Games.</div>
+      <span class="recurso-link">youtube.com →</span>
+    </a>
+    <div class="recurso-card" style="border-style: dashed; cursor:default">
+      <span class="recurso-icon" style="color:var(--text3)">⊞</span>
+      <div class="recurso-title" style="color:var(--text2)">Requisitos de hardware</div>
+      <div class="recurso-desc">GPU dedicada recomendada (NVIDIA RTX o AMD RX). RAM mínima 16 GB. SSD con 100 GB libres. Las computadoras del laboratorio PUCP cumplen estos requisitos.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DOCENTE -->
+<section id="docente">
+  <div class="section-label">Equipo</div>
+  <h2>Docente</h2>
+  <div class="docente-card">
+    <div class="docente-avatar">MJ</div>
+    <div>
+      <div class="docente-name">Marcelo Antonio Jara Falconi</div>
+      <div class="docente-role">// Estudiante de Ingeniería Informática · PUCP</div>
+      <p class="docente-bio">Desarrollador de software en VR con más de 3 años de experiencia en Unreal Engine. Investigador en el Departamento de Ingeniería PUCP enfocado en proyectos de realidad virtual. Asistente de Docencia en el Departamento de Bioingeniería y miembro del Grupo Avatar PUCP.</p>
+      <div class="docente-tags">
+        <span class="tag" style="background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-mid)">Unreal Engine 5</span>
+        <span class="tag" style="background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-mid)">Realidad Virtual</span>
+        <span class="tag" style="background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-mid)">Blueprints</span>
+        <span class="tag" style="background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-mid)">Grupo Avatar PUCP</span>
+        <span class="tag" style="background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal-mid)">Investigación VR</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFICACIÓN -->
+<section id="cert">
+  <div class="section-label">Certificación</div>
+  <h2>Al terminar el taller</h2>
+  <div class="cert-box">
+    <div class="cert-icon-box">★</div>
+    <div>
+      <div class="cert-title">Constancia de participación — PUCP</div>
+      <p class="cert-desc">Al completar el taller obtienes una constancia de participación emitida por la PUCP. Adicionalmente, al finalizar la sesión 12 contarás con un proyecto de portfolio empaquetado, capturas de alta calidad y un recorrido grabado de tu mundo digital.</p>
+      <div class="cert-req">Requisito: asistir a más del 80% de las sesiones (mínimo 10 de 12)</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">CREACIÓN DE MUNDOS DIGITALES · UE5 · PUCP</div>
+  <div class="footer-tag">Taller abierto · Presencial · 2025</div>
+</footer>
+
+<script>
+const sessions = [
+  {
+    week: "Semana 1", num: 1,
+    title: "Bienvenida, UE5 e inicio del proyecto",
+    module: "M1", modColor: "#00d4aa",
+    topics: ["Instalación y configuración","Interfaz y viewport","Content Browser","Tipos de proyecto: juego, ArchViz, set virtual"],
+    problema: "Necesito crear un mundo digital pero no sé qué herramienta usar ni cómo iniciar un proyecto desde cero en UE5.",
+    solucion: "Instalar UE5, explorar la interfaz, identificar los paneles clave y crear un proyecto usando la plantilla adecuada al perfil elegido.",
+    avance: "Proyecto creado en UE5 + brief de una hoja: temática, perfil de aplicación y descripción del mundo a construir.",
+    entrega: "Entrega: proyecto base + brief"
+  },
+  {
+    week: "Semana 1", num: 2,
+    title: "Terrain: primer entorno del proyecto",
+    module: "M1", modColor: "#00d4aa",
+    topics: ["Landscape Tool: esculpido básico","Paint layers y materiales de paisaje","Foliage Tool: vegetación procedural","Importar heightmaps"],
+    problema: "El mundo definido en el brief necesita un terreno base con identidad geográfica, pero solo existe como idea en papel.",
+    solucion: "Usar Landscape Tool para esculpir la topografía, aplicar paint layers y agregar vegetación procedural con Foliage Mode.",
+    avance: "Terreno esculpido con vegetación básica, navegable en primera persona dentro del proyecto propio.",
+    entrega: ""
+  },
+  {
+    week: "Semana 2", num: 3,
+    title: "Activos, población de escena y modelado básico",
+    module: "M1", modColor: "#00d4aa",
+    topics: ["Quixel Megascans: uso y descarga","Importación de modelos 3D externos","Static Mesh y collision setup","Modeling Mode: operaciones básicas (20 min)"],
+    problema: "La escena está vacía. Necesito poblarla con objetos coherentes con la temática y agregar al menos un elemento propio sin crearlo todo desde cero.",
+    solucion: "Descargar activos de Megascans, importar modelos externos, configurar colisiones y modelar un prop simple con Modeling Mode.",
+    avance: "Escena habitada con activos coherentes + un elemento propio modelado e integrado.",
+    entrega: "Entrega parcial: escena base completa"
+  },
+  {
+    week: "Semana 2", num: 4,
+    title: "Iluminación con Lumen",
+    module: "M2", modColor: "#9b7fe8",
+    topics: ["Directional, Point, Spot, Rect Light","Sky Atmosphere y HDRI backdrop","Lumen: GI en tiempo real","Postprocess Volume básico"],
+    problema: "La escena poblada no comunica ninguna atmósfera. La iluminación por defecto hace que todo se vea plano y sin identidad visual.",
+    solucion: "Configurar iluminación direccional con Sky Atmosphere, activar Lumen para GI y ajustar el Postprocess Volume.",
+    avance: "Escena con atmósfera definida: hora del día, temperatura de color y mood visual coherentes con la temática.",
+    entrega: ""
+  },
+  {
+    week: "Semana 3", num: 5,
+    title: "Materiales y shaders",
+    module: "M2", modColor: "#9b7fe8",
+    topics: ["Editor de materiales: nodos base","Roughness, metallic, normal map","Material instances","Materiales desde Megascans"],
+    problema: "Los activos tienen materiales genéricos que no coinciden con la identidad visual ni transmiten la materialidad correcta del proyecto.",
+    solucion: "Crear materiales personalizados: uno desde Megascans y uno construido desde cero con parámetros de roughness y metallic.",
+    avance: "Al menos 3 superficies con materiales propios aplicados, coherentes con la paleta visual definida.",
+    entrega: ""
+  },
+  {
+    week: "Semana 3", num: 6,
+    title: "Animaciones y físicas",
+    module: "M2", modColor: "#9b7fe8",
+    topics: ["Skeletal Mesh y Animation Blueprint básico","Blend spaces y transiciones simples","Chaos Physics: rigid body y colisiones","Constraints y objetos destructibles"],
+    problema: "La escena es visualmente lograda pero completamente estática. Ningún objeto se mueve ni reacciona a fuerzas físicas.",
+    solucion: "Incorporar un prop con animación básica (idle/walk) y aplicar físicas simples con Chaos Physics para que objetos reaccionen a colisiones.",
+    avance: "Al menos un elemento animado y un objeto con físicas activas integrados en la escena.",
+    entrega: "Entrega parcial: escena con luz + materiales + movimiento"
+  },
+  {
+    week: "Semana 4", num: 7,
+    title: "Blueprints: interactividad básica",
+    module: "M3", modColor: "#f5a623",
+    topics: ["Variables, eventos y funciones","Input del usuario (teclado/mouse/gamepad)","Colisiones y triggers","Primer comportamiento interactivo"],
+    problema: "El mundo construido es visualmente rico pero completamente pasivo. El usuario no puede interactuar con ningún elemento.",
+    solucion: "Crear un Blueprint Actor con trigger de colisión que ejecute una acción al acercarse el jugador.",
+    avance: "Al menos un elemento interactivo que responde al input del usuario con sentido dentro de la narrativa del proyecto.",
+    entrega: ""
+  },
+  {
+    week: "Semana 4", num: 8,
+    title: "Comunicación entre objetos: Cast y Event Dispatchers",
+    module: "M3", modColor: "#f5a623",
+    topics: ["Cast To: acceder a variables de otro Actor","Event Dispatchers: emitir y escuchar eventos","Blueprint Interfaces","Caso práctico: sistema de activación en cadena"],
+    problema: "Las interacciones son aisladas: cada Blueprint funciona solo. Necesito que múltiples objetos se comuniquen entre sí de forma escalable.",
+    solucion: "Implementar Cast To, crear un Event Dispatcher que notifique a varios Actors, y usar Blueprint Interfaces para desacoplar la lógica.",
+    avance: "Sistema de al menos 2 objetos que se comunican: palanca → puerta + luz + sonido.",
+    entrega: ""
+  },
+  {
+    week: "Semana 5", num: 9,
+    title: "Sonido y optimización",
+    module: "M3", modColor: "#f5a623",
+    topics: ["Sound Cues y audio espacial 3D","Ambient sounds en el entorno","Occlusion y reverb básico","LODs y Stats de rendimiento"],
+    problema: "El proyecto es visualmente completo e interactivo pero silencioso. La ausencia de audio rompe la inmersión.",
+    solucion: "Agregar Sound Cues ambientales y de eventos con audio espacial 3D, configurar reverb y revisar rendimiento con Stats.",
+    avance: "Escena con 3 capas de audio (ambiente, evento, efecto) y rendimiento verificado por encima de 30 fps estables.",
+    entrega: ""
+  },
+  {
+    week: "Semana 5", num: 10,
+    title: "Revisión y retroalimentación",
+    module: "M4", modColor: "#ff6b6b",
+    topics: ["Demo de avance por estudiante","Diagnóstico técnico y creativo","Plan de ajustes para sesión 11","Trabajo guiado con docente"],
+    problema: "El proyecto está casi completo pero presenta inconsistencias que el estudiante no detecta por estar demasiado cerca del trabajo.",
+    solucion: "Presentar el proyecto en demo en vivo, recibir feedback estructurado y elaborar una lista de los 3 ajustes prioritarios.",
+    avance: "Lista de ajustes definida y primer set de correcciones aplicadas durante el trabajo guiado.",
+    entrega: "Entrega: proyecto 90% + plan de ajustes"
+  },
+  {
+    week: "Semana 6", num: 11,
+    title: "Cierre técnico y empaquetado",
+    module: "M4", modColor: "#ff6b6b",
+    topics: ["Aplicar correcciones del feedback","Empaquetado y exportación (.exe)","High Resolution Screenshot y Sequencer","Preparación de presentación final"],
+    problema: "El proyecto terminado solo existe en el editor de UE5. No puede ejecutarse de forma independiente ni presentarse como portfolio.",
+    solucion: "Empaquetar el proyecto como ejecutable, capturar renders de alta calidad y preparar una narrativa de 3 puntos clave.",
+    avance: "Ejecutable independiente + 3 capturas de portfolio + recorrido grabado de 1-2 min.",
+    entrega: ""
+  },
+  {
+    week: "Semana 6", num: 12,
+    title: "Demo final y cierre",
+    module: "M4", modColor: "#ff6b6b",
+    topics: ["Presentaciones individuales en vivo","Demo navegable del entorno","Reflexión: aplicación en mi carrera","Próximos pasos y recursos"],
+    problema: "El proyecto está terminado pero no ha sido comunicado. Un mundo digital sin audiencia no tiene impacto profesional.",
+    solucion: "Demo en vivo ante el grupo explicando temática, herramientas, problemas resueltos y conexión con la carrera del estudiante.",
+    avance: "Proyecto final presentado con narrativa profesional. Portfolio listo con capturas y ejecutable.",
+    entrega: "Entrega final: proyecto completo"
+  }
+];
+
+function buildSessions() {
+  const container = document.getElementById('sessions-timeline');
+  let currentWeek = '';
+  let weekDiv = null;
+
+  sessions.forEach(s => {
+    if (s.week !== currentWeek) {
+      currentWeek = s.week;
+      weekDiv = document.createElement('div');
+      weekDiv.className = 'week-block';
+      const wl = document.createElement('div');
+      wl.className = 'week-label';
+      wl.textContent = s.week;
+      weekDiv.appendChild(wl);
+      container.appendChild(weekDiv);
+    }
+
+    const card = document.createElement('div');
+    card.className = 'session-card';
+
+    const topicTags = s.topics.map(t => `<span class="topic-tag">${t}</span>`).join('');
+    const entregaHtml = s.entrega ? `<div class="entrega-badge">★ ${s.entrega}</div>` : '';
+
+    card.innerHTML = `
+      <div class="session-card-header" onclick="toggleSession(this.parentElement)">
+        <span class="session-num">${String(s.num).padStart(2,'0')}</span>
+        <div class="session-card-info">
+          <div class="session-card-title">${s.title}</div>
+          <div class="session-card-meta">${s.module} &nbsp;·&nbsp; 2 horas</div>
+        </div>
+        <span class="session-card-chevron" style="color:${s.modColor}">›</span>
+      </div>
+      <div class="session-card-body">
+        <div class="abp-grid">
+          <div class="abp-block" style="background:#ff6b6b12;border:1px solid #ff6b6b33">
+            <div class="abp-label" style="color:#ff6b6b">Problema</div>
+            <div class="abp-text" style="color:#e0c0c0">${s.problema}</div>
+          </div>
+          <div class="abp-block" style="background:#00d4aa12;border:1px solid #00d4aa33">
+            <div class="abp-label" style="color:#00d4aa">Solución</div>
+            <div class="abp-text" style="color:#b0e8da">${s.solucion}</div>
+          </div>
+          <div class="abp-block" style="background:#9b7fe812;border:1px solid #9b7fe833">
+            <div class="abp-label" style="color:#9b7fe8">Avance</div>
+            <div class="abp-text" style="color:#ccc0f0">${s.avance}</div>
+          </div>
+        </div>
+        <div class="topics-list">${topicTags}</div>
+        ${entregaHtml}
+      </div>
+    `;
+
+    weekDiv.appendChild(card);
+  });
+}
+
+function toggleSession(card) {
+  card.classList.toggle('open');
+}
+
+function toggleModule(item) {
+  item.classList.toggle('open');
+}
+
+buildSessions();
+</script>
+</body>
+</html>
